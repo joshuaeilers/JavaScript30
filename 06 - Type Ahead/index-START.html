@@ -8,7 +8,7 @@
 <body>
 
   <form class="search-form">
-    <input type="text" class="search" placeholder="City or State">
+    <input type="text" class="search" placeholder="City or State" autofocus="true" data-size="10">
     <ul class="suggestions">
       <li>Filter for a city</li>
       <li>or a state</li>
@@ -16,6 +16,79 @@
   </form>
 <script>
 const endpoint = 'https://gist.githubusercontent.com/Miserlou/c5cd8364bf9b2420bb29/raw/2bf258763cdddd704f8ffd3ea9a3e81d25e2c6f6/cities.json';
+
+const cities = [];
+
+fetch(endpoint)
+  .then(res => res.json())
+  .then(data => cities.push(...data))
+  .catch(err => console.error(err));
+
+function findMatches(wordToMatch, cities, size) {
+  const regex = new RegExp(wordToMatch, 'gi');
+  const matches = [];
+  for (let i = 0; i < cities.length; i++) {
+    if (matches.length === size) {
+      return matches;
+    }
+
+    const place = cities[i];
+    if (place.city.match(regex) || place.state.match(regex)) {
+      matches.push(place);
+    }
+  }
+  return matches;
+}
+
+function numberWithCommas(n) {
+  if (typeof n !== 'string') {
+    n = n.toString();
+  }
+
+  var result = [];
+  var digits = n.split('');
+  var count = 0;
+
+  for (var i = digits.length - 1; i >= 0; i--) {
+    if (count === 3 && i > 0) {
+      count = 0;
+      result.unshift(',');
+    } else {
+      count++;
+    }
+
+    result.unshift(digits[i]);
+  }
+
+  return result.join('');
+}
+
+function displayMatches(e) {
+  if (!this.value || e.keyCode === 27) {
+    return this.value = suggestions.innerHTML = '';
+  }
+
+  const size = this.dataset.size || 10;
+  const matchArray = findMatches(this.value, cities, size);
+  const regex = new RegExp(this.value, 'gi');
+
+  suggestions.innerHTML = matchArray.map(place => {
+    const cityClass = place.city.match(regex) ? 'hl' : '';
+    const stateClass = place.state.match(regex) ? 'hl' : '';
+    return `
+      <li>
+        <span class="name ${cityClass}">${place.city}</span>
+        <span class="state ${stateClass}">${place.state}</span>
+        <span class="population">${numberWithCommas(place.population)}</span>
+      </li>
+    `}).join('');
+}
+
+const searchInput = document.querySelector('.search');
+const suggestions = document.querySelector('.suggestions');
+
+searchInput.addEventListener('change', displayMatches);
+searchInput.addEventListener('keyup', displayMatches);
 
 </script>
   </body>

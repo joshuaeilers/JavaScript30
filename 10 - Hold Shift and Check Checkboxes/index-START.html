@@ -104,6 +104,38 @@
   </div>
 
 <script>
+
+const checkboxes = document.querySelectorAll('.item > input');
+let isShiftDown = false;
+let lastChecked;
+
+function handleClick(e) {
+  if (this.checked && lastChecked && isShiftDown) {
+    let starting = false;
+    checkboxes.forEach(cb => {
+      if (cb === lastChecked || cb === this) {
+        starting = !starting;
+      }
+
+      if (starting) {
+        cb.checked = true;
+      }
+    })
+  }
+  if (this.checked) {
+    lastChecked = this;
+  }
+}
+
+// todo - top to bottom or bottom to top
+document.addEventListener('keydown', e => isShiftDown = e.keyCode === 16);
+document.addEventListener('keyup', e => {
+  if (e.keyCode === 16) {
+    isShiftDown = false;
+  }
+});
+checkboxes.forEach(cb => cb.addEventListener('click', handleClick));
+
 </script>
 </body>
 </html>
